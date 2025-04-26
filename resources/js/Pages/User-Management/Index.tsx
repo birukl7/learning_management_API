@@ -43,7 +43,7 @@ interface IndexProps{
 function Index({users, queryParams={}, session, canUpdate, canDelete, canAdd}: IndexProps) {
   queryParams = queryParams || {}
 
-  console.log(users)
+  // console.log(users)
   
   const searchFieldChanged = (name: string, value: any) => {
     if (value) {

@@ -146,6 +146,8 @@ const CreateExamQuestionAlert = ({ exam, exam_grades }: CreateExamQuestionAlertP
   }, [data.exam_course_id, data.exam_grade_id])
 
   const addQuestion = () => {
+    // Restrict to maximum 10 questions
+    if (data.questions.length >= 10) return
     setData("questions", [
       ...data.questions,
       {
@@ -187,7 +189,10 @@ const CreateExamQuestionAlert = ({ exam, exam_grades }: CreateExamQuestionAlertP
     const isChapterRequired = !excludedExamTypes.includes(exam.exam_type?.name || "")
 
     if (isChapterRequired && (!data.exam_chapter_id || data.exam_chapter_id === "none")) {
-      setError("exam_chapter_id", "Exam chapter is required. Create it in the exam course management first if it doesn't exist.")
+      setError(
+        "exam_chapter_id",
+        "Exam chapter is required. Create it in the exam course management first if it doesn't exist.",
+      )
       isValid = false
     }
 
@@ -334,6 +339,9 @@ const CreateExamQuestionAlert = ({ exam, exam_grades }: CreateExamQuestionAlertP
               <PlusCircle className="mr-2 h-4 w-4" />
               Add Another Question
             </Button>
+            {data.questions.length >= 10 && (
+              <p className="text-sm text-muted-foreground mt-1">Maximum limit of 10 questions reached.</p>
+            )}
           </form>
         </ScrollArea>
 

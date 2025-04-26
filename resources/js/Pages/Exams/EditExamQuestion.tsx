@@ -17,6 +17,7 @@ import { X } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/Components/ui/card"
 import BackLink from "@/Components/BackLink"
 import { SessionToast } from "@/Components/SessionToast"
+import { router } from "@inertiajs/react"
 
 interface EditExamQuestionAlertProps {
   exam_grades: ExamGrade[]
@@ -33,21 +34,20 @@ const EditExamQuestion = ({ exam_grades, question, exam }: EditExamQuestionAlert
   const [imageExplanationPreview, setImageExplanationPreview] = useState<string | null>(question.image_explanation_url)
   const [examChapters, setExamChapters] = useState<ExamChapter[]>([])
 
-
   const { data, setData, post, processing, errors, reset, clearErrors, setError } = useForm<{
     _method: string
     exam_id: string
-    exam_type_id: string,
-    exam_year_id: string,
-    exam_course_id: string,
-    exam_grade_id: string,
-    exam_chapter_id: string | null,
-    question_text: string,
-    video_explanation_url: string,
-    question_image_url: string | null | File,
-    image_explanation_url: string | null | File,
-    text_explanation: string,
-    options: string[],
+    exam_type_id: string
+    exam_year_id: string
+    exam_course_id: string
+    exam_grade_id: string
+    exam_chapter_id: string | null
+    question_text: string
+    video_explanation_url: string
+    question_image_url: string | null | File
+    image_explanation_url: string | null | File
+    text_explanation: string
+    options: string[]
     answer: string[]
   }>({
     _method: "PATCH",
@@ -65,7 +65,6 @@ const EditExamQuestion = ({ exam_grades, question, exam }: EditExamQuestionAlert
     options: JSON.parse(question.options),
     answer: JSON.parse(question.answer),
   })
-
 
   const fetchExamChapters = useCallback(async (examCourseId: string) => {
     try {
@@ -97,7 +96,6 @@ const EditExamQuestion = ({ exam_grades, question, exam }: EditExamQuestionAlert
     }
   }, [])
 
-
   useEffect(() => {
     if (data.exam_course_id) {
       fetchExamChapters(data.exam_course_id)
@@ -116,6 +114,9 @@ const EditExamQuestion = ({ exam_grades, question, exam }: EditExamQuestionAlert
 
   const addOption = useCallback(() => {
     setOptions((prevOptions) => {
+      // Restrict to maximum 8 options
+      if (prevOptions.length >= 8) return prevOptions
+
       const newOptions = [...prevOptions, ""]
       setData("options", newOptions)
       return newOptions
@@ -174,10 +175,10 @@ const EditExamQuestion = ({ exam_grades, question, exam }: EditExamQuestionAlert
       isValid = false
     }
 
-
-
-    if (["6th Grade Ministry",'8th Grade Ministry', "ESSCLE"].includes(exam.exam_type?.name ?? "") 
-     && !data.exam_chapter_id) {
+    if (
+      ["6th Grade Ministry", "8th Grade Ministry", "ESSCLE"].includes(exam.exam_type?.name ?? "") &&
+      !data.exam_chapter_id
+    ) {
       setError("exam_chapter_id", "Exam chapter is required")
       isValid = false
     }
@@ -213,7 +214,7 @@ const EditExamQuestion = ({ exam_grades, question, exam }: EditExamQuestionAlert
         return
       }
 
-      post(route("exam-questions.update", question.id), {
+      router.patch(route("exam-questions.update", question.id), data, {
         preserveScroll: true,
         preserveState: false,
         onSuccess: () => {
@@ -224,18 +225,22 @@ const EditExamQuestion = ({ exam_grades, question, exam }: EditExamQuestionAlert
         },
       })
     },
-    [validateForm, post, question.id],
+    [validateForm, data, question.id],
   )
 
   const memoizedExamGrades = useMemo(() => exam_grades, [exam_grades])
   const { flash } = usePage().props as unknown as { flash: { success?: string; error?: string } }
 
-
-  
   const handleChapterChange = (value: string) => {
-    // If "none" is selected, set exam_chapter_id to null
-    if (value === "none") {
+    const excludedExamTypes = ["NGAT", "EXIT", "SAT", "UAT", "EXAM"]
+    const isExcludedType = excludedExamTypes.includes(exam.exam_type?.name || "")
+
+    // Only allow "none" for excluded exam types
+    if (value === "none" && isExcludedType) {
       setData("exam_chapter_id", null)
+    } else if (value === "none" && !isExcludedType) {
+      // Don't allow "none" for non-excluded types
+      return
     } else {
       setData("exam_chapter_id", value)
     }
@@ -245,17 +250,16 @@ const EditExamQuestion = ({ exam_grades, question, exam }: EditExamQuestionAlert
     <Authenticated
       header={
         <div className="flex justify-between">
-            <h2 className="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">Edit Exam Question</h2>
-            <BackLink href={route('exam-details.show', exam.id)} text={'Back'}/>
+          <h2 className="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">Edit Exam Question</h2>
+          <BackLink href={route("exam-details.show", exam.id)} text={"Back"} />
         </div>
-
       }
     >
       <Head title="Edit Exam Question" />
 
       {/* {flash.success && (<SessionToast message={flash.success }  />)} */}
-      {flash.error && (<SessionToast message={flash.error} />)}
-      
+      {flash.error && <SessionToast message={flash.error} />}
+
       <div className="py-12">
         <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
           <Card>
@@ -266,8 +270,7 @@ const EditExamQuestion = ({ exam_grades, question, exam }: EditExamQuestionAlert
               <form onSubmit={submit} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-4">
-
-                    {showExamGrade() && data.exam_year_id &&(
+                    {showExamGrade() && data.exam_year_id && (
                       <div>
                         <InputLabel htmlFor="exam-grade" value="Exam Grade" />
                         <Select value={data.exam_grade_id} onValueChange={handleExamGradeChange}>
@@ -288,7 +291,14 @@ const EditExamQuestion = ({ exam_grades, question, exam }: EditExamQuestionAlert
 
                     {data.exam_course_id && (
                       <div>
-                        <InputLabel htmlFor="exam-chapter" value="Exam Chapter (optional)" />
+                        <InputLabel
+                          htmlFor="exam-chapter"
+                          value={
+                            ["NGAT", "EXIT", "SAT", "UAT", "EXAM"].includes(exam.exam_type?.name || "")
+                              ? "Exam Chapter (optional)"
+                              : "Exam Chapter"
+                          }
+                        />
                         <Select
                           value={data.exam_chapter_id == null ? "none" : data.exam_chapter_id}
                           onValueChange={handleChapterChange}
@@ -297,7 +307,9 @@ const EditExamQuestion = ({ exam_grades, question, exam }: EditExamQuestionAlert
                             <SelectValue placeholder="Select an exam chapter" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="none">None (No specific chapter)</SelectItem>
+                            {["NGAT", "EXIT", "SAT", "UAT", "EXAM"].includes(exam.exam_type?.name || "") && (
+                              <SelectItem value="none">None (No specific chapter)</SelectItem>
+                            )}
                             {examChapters.map((chapter) => (
                               <SelectItem key={chapter.id} value={chapter.id.toString()}>
                                 {chapter.title}
@@ -305,9 +317,11 @@ const EditExamQuestion = ({ exam_grades, question, exam }: EditExamQuestionAlert
                             ))}
                           </SelectContent>
                         </Select>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Leave empty if the question is not associated with a specific chapter.
-                        </p>
+                        {["NGAT", "EXIT", "SAT", "UAT", "EXAM"].includes(exam.exam_type?.name || "") && (
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Leave empty if the question is not associated with a specific chapter.
+                          </p>
+                        )}
                         <InputError message={errors.exam_chapter_id} className="mt-2" />
                       </div>
                     )}
@@ -370,7 +384,6 @@ const EditExamQuestion = ({ exam_grades, question, exam }: EditExamQuestionAlert
                         id="text_explanation"
                         value={data.text_explanation}
                         onChange={(e) => setData("text_explanation", e.target.value)}
-                        
                       />
                       <InputError message={errors.text_explanation} />
                     </div>
@@ -405,9 +418,12 @@ const EditExamQuestion = ({ exam_grades, question, exam }: EditExamQuestionAlert
                         </Button>
                       </div>
                     ))}
-                    <Button type="button" variant="outline" onClick={addOption}>
+                    <Button type="button" variant="outline" onClick={addOption} disabled={options.length >= 8}>
                       Add Option
                     </Button>
+                    {options.length >= 8 && (
+                      <p className="text-xs text-muted-foreground mt-1">Maximum limit of 8 options reached.</p>
+                    )}
                   </div>
                   <InputError message={errors.options} />
                 </div>
@@ -485,4 +501,3 @@ const EditExamQuestion = ({ exam_grades, question, exam }: EditExamQuestionAlert
 }
 
 export default EditExamQuestion
-

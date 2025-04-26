@@ -1,5 +1,3 @@
-"use client"
-
 import { type FormEventHandler, useState, useEffect, useCallback, useMemo } from "react"
 import { useForm } from "@inertiajs/react"
 import axios from "axios"
@@ -219,9 +217,6 @@ const CreateExamCourseAlert = ({
 
   const submit: FormEventHandler = (e) => {
     e.preventDefault()
-
-    // Add this debug line
-    console.log("Submitting form with data:", data)
 
     // Reset duplicate error
     setDuplicateError(null)

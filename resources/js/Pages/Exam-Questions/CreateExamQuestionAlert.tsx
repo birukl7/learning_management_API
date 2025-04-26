@@ -19,7 +19,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import axios from "axios"
 import QuestionForm from "./QuestionForm"
 
-
 interface CreateExamQuestionAlertProps {
   exam: Exam
   exam_grades?: ExamGrade[]
@@ -111,7 +110,6 @@ const CreateExamQuestionAlert = ({ exam, exam_grades }: CreateExamQuestionAlertP
 
       const response = await axios.get(url)
       setExamChapters(response.data)
-   
     } catch (error) {
       console.error("Error fetching exam chapters:", error)
     }
@@ -184,7 +182,14 @@ const CreateExamQuestionAlert = ({ exam, exam_grades }: CreateExamQuestionAlertP
       isValid = false
     }
 
-    // Chapter is optional, so we don't validate it
+    // Check if chapter is required (when exam type is not in the excluded list)
+    const excludedExamTypes = ["NGAT", "EXIT", "SAT", "UAT", "EXAM"]
+    const isChapterRequired = !excludedExamTypes.includes(exam.exam_type?.name || "")
+
+    if (isChapterRequired && (!data.exam_chapter_id || data.exam_chapter_id === "none")) {
+      setError("exam_chapter_id", "Exam chapter is required. Create it in the exam course management first if it doesn't exist.")
+      isValid = false
+    }
 
     data.questions.forEach((question, index) => {
       if (!question.question_text) {
@@ -218,9 +223,6 @@ const CreateExamQuestionAlert = ({ exam, exam_grades }: CreateExamQuestionAlertP
     if (!validateForm()) {
       return
     }
-
-    // Log the data being sent to the server
-    // console.log("Submitting data:", data)
 
     post(route("exam-questions.store"), {
       preserveScroll: true,
@@ -274,7 +276,14 @@ const CreateExamQuestionAlert = ({ exam, exam_grades }: CreateExamQuestionAlertP
 
               {data.exam_course_id && (
                 <div>
-                  <InputLabel htmlFor="exam-chapter" value="Exam Chapter (Optional)" />
+                  <InputLabel
+                    htmlFor="exam-chapter"
+                    value={
+                      !["NGAT", "EXIT", "SAT", "UAT", "EXAM"].includes(exam.exam_type?.name || "")
+                        ? "Exam Chapter"
+                        : "Exam Chapter (Optional)"
+                    }
+                  />
                   <Select
                     value={data.exam_chapter_id === null ? "none" : data.exam_chapter_id}
                     onValueChange={handleChapterChange}
@@ -283,7 +292,9 @@ const CreateExamQuestionAlert = ({ exam, exam_grades }: CreateExamQuestionAlertP
                       <SelectValue placeholder="Select an exam chapter" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="none">None (No specific chapter)</SelectItem>
+                      {["NGAT", "EXIT", "SAT", "UAT", "EXAM"].includes(exam.exam_type?.name || "") && (
+                        <SelectItem value="none">None (No specific chapter)</SelectItem>
+                      )}
                       {examChapters?.map((chapter) => (
                         <SelectItem key={chapter.id} value={chapter.id.toString()}>
                           {chapter.title}
@@ -291,9 +302,11 @@ const CreateExamQuestionAlert = ({ exam, exam_grades }: CreateExamQuestionAlertP
                       ))}
                     </SelectContent>
                   </Select>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Select "None" if the question is not associated with a specific chapter.
-                  </p>
+                  {["NGAT", "EXIT", "SAT", "UAT", "EXAM"].includes(exam.exam_type?.name || "") && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Select "None" if the question is not associated with a specific chapter.
+                    </p>
+                  )}
                   <InputError message={errors.exam_chapter_id} className="mt-2" />
                 </div>
               )}

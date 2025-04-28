@@ -53,6 +53,8 @@ Route::middleware(['auth:sanctum', 'verified'])->get('/user', function (Request 
     return $request->user();
 });
 
+
+
 Route::get('/random-courses-paginate', function(){
      return CourseResource::collection(Course::with(['category','grade','department','batch', 'chapters','subscriptionRequests'])->paginate()); 
 });

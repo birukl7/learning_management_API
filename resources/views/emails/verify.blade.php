@@ -109,7 +109,7 @@
         <p>If you did not create an account, no further action is required.</p>
         
         <div class="footer">
-            <p>This email was sent by Your App Name. If you have any questions, please contact our support team.</p>
+            <p>This email was sent by Excelet. If you have any questions, please contact our support team.</p>
         </div>
     </div>
 </body>

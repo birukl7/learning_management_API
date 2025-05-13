@@ -341,7 +341,7 @@ export interface Exam {
   export interface PaidCourse{
     id: number
     expired: number 
-    user: User[]
+    user: User
     subscriptionRequest: SubscriptionRequest
     created_at: string 
     updated_at: string 

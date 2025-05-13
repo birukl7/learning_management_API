@@ -24,23 +24,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { ScrollArea } from "@/Components/ui/scroll-area"
 import { Avatar, AvatarFallback } from "@/Components/ui/avatar"
 import type { Course } from "@/types/course"
-import type { User } from "@/types"
+import type { PaidCourse, User } from "@/types"
 
-interface PaidCourse {
-  id: number
-  user: User
-  expired: number
-  subscriptionRequest: {
-    total_price: number
-    subscription_type: string
-    subscriptions?: {
-      subscription_start_date?: string
-      subscription_end_date?: string
-      status?: string
-    }[]
-  }
-  created_at: string
-}
 
 interface CourseStatisticsDialogProps {
   course: Course

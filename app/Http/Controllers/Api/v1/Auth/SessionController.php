@@ -41,7 +41,9 @@ class SessionController extends Controller
         ]);
 
         EmailVerificationSend::dispatch($user);
+
         $adminRoleApi = Role::where('name', 'admin')->where('guard_name', 'api')->first();
+        
         $adminRoleWeb = Role::where('name', 'admin')->where('guard_name', 'web')->first();
 
         $user->assignRole($adminRoleApi);// assigning admin role for the api

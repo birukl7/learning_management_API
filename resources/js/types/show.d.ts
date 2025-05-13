@@ -1,3 +1,4 @@
+import { PaidCourse } from ".";
 import { Course } from "./course";
 
 export interface ShowCourseProps {
@@ -12,7 +13,8 @@ export interface ShowCourseProps {
   departments: Department[];
   batches: Batch[];
   chaptersCount: number;
-  paidCourses: number
+  enrolledStudents: number
+  paidCourses: PaidCourse[]
   session: string
   canDelete: boolean
   canUpdate: boolean

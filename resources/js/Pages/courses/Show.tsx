@@ -15,6 +15,7 @@ import relativeTime from "dayjs/plugin/relativeTime"
 import PermissionAlert from "@/Components/PermissionAlert"
 import { SessionToast } from "@/Components/SessionToast"
 import { Button } from "@/Components/ui/button"
+import CourseStatisticsDialog from "./course-statistics-dialog"
 
 
 dayjs.extend(relativeTime)
@@ -31,12 +32,15 @@ const Show = ({
   departments,
   batches,
   chaptersCount,
-  paidCourses,
+  enrolledStudents,
   canDelete,
   canUpdate,
   canDeleteChapters,
   canUpdateChapters,
+  paidCourses
 }: ShowCourseProps) => {
+
+  console.log(paidCourses)
 
   const gradeName = grades.find((grade) => grade.id === Number(course.grade_id))?.grade_name || "N/A"
 
@@ -150,6 +154,11 @@ const Show = ({
                   </div>
                 </CardContent>
               </Card>
+
+              <CourseStatisticsDialog
+                course={course}
+                paidCourses={paidCourses}
+              />
             </div>
 
             {/* Sidebar */}
@@ -198,7 +207,7 @@ const Show = ({
                   <CardTitle>Course Statistics</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <StatItem icon={<UserCheck className="w-5 h-5" />} label="Enrolled Students" value={paidCourses} />
+                  <StatItem icon={<UserCheck className="w-5 h-5" />} label="Enrolled Students" value={enrolledStudents} />
                 </CardContent>
               </Card>
 

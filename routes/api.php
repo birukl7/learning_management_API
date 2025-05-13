@@ -754,9 +754,6 @@ Route::get('/exam-courses-chapters-questions/{courseId}/{gradeId?}', function ($
 });
 
 
-
-
-
 Route::get('exam-courses/{exam_course_id}/grades', function ($exam_course_id) {
     $examCourse = ExamCourse::with('examGrades')->findOrFail($exam_course_id);
     // dd($examCourse->grades);

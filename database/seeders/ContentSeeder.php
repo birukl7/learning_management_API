@@ -20,7 +20,7 @@ class ContentSeeder extends Seeder
             
             $chapters = Chapter::all();
             $chapters->each(function($chapter){
-                foreach(range(1, 5) as $order){
+                foreach(range(1, 2) as $order){
                     Content::factory()->create([
                         'chapter_id' => $chapter->id,
                         'order' => $order,

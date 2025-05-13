@@ -9,7 +9,6 @@ import type { IndexProps } from "@/types/index.d"
 import PermissionAlert from "@/Components/PermissionAlert"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/Components/ui/dropdown-menu"
 import { Button } from "@/Components/ui/button"
-import NavLink from "@/Components/NavLink"
 import MainLayout from "@/Layouts/MainLayout"
 
 const Index: React.FC<IndexProps> = ({ courses, categories, grades, departments, batches, filters, canAdd }) => {

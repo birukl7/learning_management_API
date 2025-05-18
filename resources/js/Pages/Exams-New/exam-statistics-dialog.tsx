@@ -1,5 +1,3 @@
-"use client"
-
 import { useState, useEffect } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/Components/ui/dialog"
 import { Button } from "@/Components/ui/button"
@@ -23,10 +21,9 @@ import { CalendarDays, DollarSign, Users, BarChart3, Activity, Calendar } from "
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/Components/ui/table"
 import { ScrollArea } from "@/Components/ui/scroll-area"
 import { Avatar, AvatarFallback } from "@/Components/ui/avatar"
-import type { Course } from "@/types/course"
-import type { User } from "@/types"
+import type { Exam, User } from "@/types"
 
-interface PaidCourse {
+interface PaidExam {
   id: number
   user: User
   expired: number
@@ -42,12 +39,13 @@ interface PaidCourse {
   created_at: string
 }
 
-interface CourseStatisticsDialogProps {
-  course: Course
-  paidCourses: PaidCourse[]
+interface examStatisticsDialogProps {
+  exam: Exam
+  paidExams: PaidExam[]
 }
 
-export default function CourseStatisticsDialog({ course, paidCourses }: CourseStatisticsDialogProps) {
+export default function ExamStatisticsDialog({ exam, paidExams }: examStatisticsDialogProps) {
+
 
 
   const [open, setOpen] = useState(false)
@@ -56,19 +54,19 @@ export default function CourseStatisticsDialog({ course, paidCourses }: CourseSt
   const [displayYear, setDisplayYear] = useState(2025)
 
   // Calculate total revenue based on actual paid amounts
-  const totalRevenue = paidCourses.reduce((total, paidCourse) => {
-    return total + Number(paidCourse.subscriptionRequest?.total_price || 0)
+  const totalRevenue = paidExams.reduce((total, paidExam) => {
+    return total + Number(paidExam.subscriptionRequest?.total_price || 0)
   }, 0)
 
-  const activeSubscriptions = paidCourses.filter((paidCourse) => paidCourse.expired === 0).length
-  const expiredSubscriptions = paidCourses.filter((paidCourse) => paidCourse.expired === 1).length
+  const activeSubscriptions = paidExams.filter((paidExam) => paidExam.expired === 0).length
+  const expiredSubscriptions = paidExams.filter((paidExam) => paidExam.expired === 1).length
 
   // Only include subscription types that have actual enrollments
   const getSubscriptionTypeData = () => {
     const typeCounts: Record<string, number> = {}
 
-    paidCourses.forEach((paidCourse) => {
-      const type = paidCourse.subscriptionRequest?.subscription_type
+    paidExams.forEach((paidExam) => {
+      const type = paidExam.subscriptionRequest?.subscription_type
       if (type) {
         typeCounts[type] = (typeCounts[type] || 0) + 1
       }
@@ -105,13 +103,13 @@ export default function CourseStatisticsDialog({ course, paidCourses }: CourseSt
 
     switch (type) {
       case "oneMonth":
-        return !!course.on_sale_one_month && course.on_sale_one_month < course.price_one_month
+        return !!exam.on_sale_one_month && exam.on_sale_one_month < exam.price_one_month
       case "threeMonths":
-        return !!course.on_sale_three_month && course.on_sale_three_month < course.price_three_month
+        return !!exam.on_sale_three_month && exam.on_sale_three_month < exam.price_three_month
       case "sixMonths":
-        return !!course.on_sale_six_month && course.on_sale_six_month < course.price_six_month
+        return !!exam.on_sale_six_month && exam.on_sale_six_month < exam.price_six_month
       case "yearly":
-        return !!course.on_sale_one_year && course.on_sale_one_year < course.price_one_year
+        return !!exam.on_sale_one_year && exam.on_sale_one_year < exam.price_one_year
       default:
         return false
     }
@@ -135,11 +133,11 @@ export default function CourseStatisticsDialog({ course, paidCourses }: CourseSt
       { name: "Dec 2025", value: 0 },
     ]
 
-    // Process the data from paidCourses
-    paidCourses.forEach((paidCourse) => {
+    // Process the data from paidExams
+    paidExams.forEach((paidExam) => {
       try {
         // Extract the date from created_at
-        const dateStr = paidCourse.created_at
+        const dateStr = paidExam.created_at
         console.log("Processing date:", dateStr)
 
         if (!dateStr) return
@@ -165,15 +163,15 @@ export default function CourseStatisticsDialog({ course, paidCourses }: CourseSt
         }
 
         // Get the actual paid amount
-        const price = Number(paidCourse.subscriptionRequest?.total_price || 0)
-        console.log("Price for course:", price)
+        const price = Number(paidExam.subscriptionRequest?.total_price || 0)
+        console.log("Price for exam:", price)
 
         // Add the price to the corresponding month
         monthlyData[monthIndex].value += price
 
         console.log(`Added ${price} to ${monthlyData[monthIndex].name}, new total: ${monthlyData[monthIndex].value}`)
       } catch (error) {
-        console.error("Error processing course data:", error)
+        console.error("Error processing exam data:", error)
       }
     })
 
@@ -199,12 +197,12 @@ export default function CourseStatisticsDialog({ course, paidCourses }: CourseSt
   }
 
   // Calculate subscription status
-  const getSubscriptionStatus = (paidCourse: PaidCourse) => {
-    if (paidCourse.expired === 1) {
+  const getSubscriptionStatus = (paidExam: PaidExam) => {
+    if (paidExam.expired === 1) {
       return "Expired"
     }
 
-    const subscription = paidCourse.subscriptionRequest?.subscriptions?.[0]
+    const subscription = paidExam.subscriptionRequest?.subscriptions?.[0]
     if (!subscription) return "Unknown"
 
     return subscription.status
@@ -213,13 +211,13 @@ export default function CourseStatisticsDialog({ course, paidCourses }: CourseSt
   // Colors for pie chart
   const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"]
 
-  // Log the paid courses data when the component mounts
+  // Log the paid exams data when the component mounts
   useEffect(() => {
-    console.log("Paid courses data:", paidCourses)
+    console.log("Paid exams data:", paidExams)
 
     // Log the created_at dates and total_price
-    paidCourses.forEach((courapise, index) => {
-      console.log(`Course ${index} created_at:`, courapise.created_at)
+    paidExams.forEach((courapise, index) => {
+      console.log(`exam ${index} created_at:`, courapise.created_at)
       
 
       // Try to parse the date
@@ -233,19 +231,19 @@ export default function CourseStatisticsDialog({ course, paidCourses }: CourseSt
 
     // Log the monthly data
     console.log("Monthly data:", getMonthlyRevenueData())
-  }, [paidCourses])
+  }, [paidExams])
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="outline" className="gap-2">
           <BarChart3 className="h-4 w-4" />
-          Course Statistics
+          Exam Statistics
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
         <DialogHeader>
-          <DialogTitle className="text-xl">Course Statistics: {course.course_name}</DialogTitle>
+          <DialogTitle className="text-xl">Exam Statistics: {exam.exam_course?.course_name}</DialogTitle>
         </DialogHeader>
 
         <ScrollArea className="h-[calc(90vh-120px)] pr-4">
@@ -260,7 +258,7 @@ export default function CourseStatisticsDialog({ course, paidCourses }: CourseSt
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{paidCourses.length}</div>
+                  <div className="text-2xl font-bold">{paidExams.length}</div>
                   <p className="text-xs text-muted-foreground">
                     {activeSubscriptions} active, {expiredSubscriptions} expired
                   </p>
@@ -294,7 +292,7 @@ export default function CourseStatisticsDialog({ course, paidCourses }: CourseSt
                     <Badge variant="destructive">{expiredSubscriptions} Expired</Badge>
                   </div>
                   <p className="text-xs text-muted-foreground mt-1">
-                    {Math.round((activeSubscriptions / (paidCourses.length || 1)) * 100)}% active rate
+                    {Math.round((activeSubscriptions / (paidExams.length || 1)) * 100)}% active rate
                   </p>
                 </CardContent>
               </Card>
@@ -387,13 +385,13 @@ export default function CourseStatisticsDialog({ course, paidCourses }: CourseSt
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {paidCourses.map((paidCourse) => {
-                      const subscription = paidCourse.subscriptionRequest?.subscriptions?.[0]
-                      const user = paidCourse.user
-                      const subscriptionType = paidCourse.subscriptionRequest?.subscription_type
+                    {paidExams.map((paidExam) => {
+                      const subscription = paidExam.subscriptionRequest?.subscriptions?.[0]
+                      const user = paidExam.user
+                      const subscriptionType = paidExam.subscriptionRequest?.subscription_type
 
                       return (
-                        <TableRow key={paidCourse.id}>
+                        <TableRow key={paidExam.id}>
                           <TableCell>
                             <div className="flex items-center gap-2">
                               <Avatar className="h-8 w-8">
@@ -409,7 +407,7 @@ export default function CourseStatisticsDialog({ course, paidCourses }: CourseSt
                             {subscriptionType ? formatSubscriptionType(subscriptionType) : "Unknown"}
                           </TableCell>
                           <TableCell>
-                            {Number(paidCourse.subscriptionRequest?.total_price || 0).toLocaleString()} Birr
+                            {Number(paidExam.subscriptionRequest?.total_price || 0).toLocaleString()} Birr
                             {isOnSale(subscriptionType) && (
                               <Badge
                                 variant="outline"
@@ -434,28 +432,28 @@ export default function CourseStatisticsDialog({ course, paidCourses }: CourseSt
                           <TableCell>
                             <Badge
                               variant={
-                                paidCourse.expired === 1
+                                paidExam.expired === 1
                                   ? "destructive"
-                                  : getSubscriptionStatus(paidCourse) === "Active"
+                                  : getSubscriptionStatus(paidExam) === "Active"
                                     ? "default"
                                     : "secondary"
                               }
                               className={
-                                paidCourse.expired === 0 && getSubscriptionStatus(paidCourse) === "Active"
+                                paidExam.expired === 0 && getSubscriptionStatus(paidExam) === "Active"
                                   ? "bg-green-500"
                                   : ""
                               }
                             >
-                              {paidCourse.expired === 1 ? "Expired" : getSubscriptionStatus(paidCourse)}
+                              {paidExam.expired === 1 ? "Expired" : getSubscriptionStatus(paidExam)}
                             </Badge>
                           </TableCell>
                         </TableRow>
                       )
                     })}
-                    {paidCourses.length === 0 && (
+                    {paidExams.length === 0 && (
                       <TableRow>
                         <TableCell colSpan={6} className="text-center py-6 text-muted-foreground">
-                          No enrollments found for this course
+                          No enrollments found for this exam
                         </TableCell>
                       </TableRow>
                     )}

@@ -3,7 +3,7 @@ import MainLayout from "@/Layouts/MainLayout"
 import CreateExamQuestionAlert from "../Exam-Questions/CreateExamQuestionAlert"
 import PermissionAlert from "@/Components/PermissionAlert"
 import { PlusCircle, Search } from "lucide-react"
-import type { Exam, ExamChapter, ExamQuestion } from "@/types"
+import type { Exam, ExamChapter, ExamQuestion, PaidExam } from "@/types"
 import QuestionCard from "../Exams/QuestionCard"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/Components/ui/select"
 import { Link, useForm } from "@inertiajs/react"
@@ -12,6 +12,7 @@ import axios from "axios"
 import { Input } from "@/Components/ui/input"
 import BackLink from "@/Components/BackLink"
 import { router } from "@inertiajs/react"
+import ExamStatisticsDialog from "../Exams-New/exam-statistics-dialog"
 
 interface IndexProps {
   exam: Exam
@@ -33,6 +34,7 @@ interface IndexProps {
   canAddExamQuestions: boolean
   canUpdateExamQuestions: boolean
   canDeleteExamQuestions: boolean
+  paidExams: PaidExam[]
 }
 
 const Index = ({
@@ -44,6 +46,7 @@ const Index = ({
   exam_grades,
   exam_chapters,
   filters,
+  paidExams,
 }: IndexProps) => {
   const { data, setData } = useForm({
     search: filters?.search || "",
@@ -173,6 +176,7 @@ const Index = ({
       }
       headerAction={
         <>
+          <ExamStatisticsDialog exam={exam} paidExams={paidExams} />
           <BackLink href={route("exams-new.show", exam.exam_type_id)} text={"Back to " + exam.exam_type?.name} />
           {canAddExamQuestions ? (
             <CreateExamQuestionAlert exam={exam} exam_grades={exam_grades} />

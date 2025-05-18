@@ -1,5 +1,3 @@
-"use client"
-
 import { DropdownMenuTrigger } from "@/Components/ui/dropdown-menu"
 
 import type React from "react"

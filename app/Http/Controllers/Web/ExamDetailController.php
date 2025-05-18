@@ -44,6 +44,25 @@ class ExamDetailController extends Controller
 
         $exam_questions = $query->orderBy('created_at', 'desc')->paginate(perPage: 30);
 
+        $paidExams = $exam->paidExams()->with('user')->get();
+
+        $paidExamsWithSubscriptions = $paidExams->map(function ($paidExam) use ($exam) {
+            $subscriptionRequest = $paidExam->user
+                ->subscriptionRequests()
+                ->whereHas('exams', fn($q) => $q->where('exams.id', $exam->id))
+                ->with('subscriptions')
+                ->latest()
+                ->first(); // or ->first() if only one expected
+        
+            return [
+                'id' => $paidExam->id,
+                'expired' => $paidExam->expired,
+                'user' => $paidExam->user,
+                'subscriptionRequest' => $subscriptionRequest,
+                'created_at' => $paidExam->created_at
+            ];
+        });
+
 
         return Inertia::render('Exam-Detail/Index', [
             'exam' => $exam,
@@ -51,6 +70,7 @@ class ExamDetailController extends Controller
             'exam_chapters' => $exam_chapters,
             'exam_questions' => $exam_questions,
             'exam_grades' => ExamGrade::all(),
+            'paidExams' => $paidExamsWithSubscriptions,
             'canAddExamQuestions' => Auth::user()->hasDirectPermission('add exam questions'),
             'canUpdateExamQuestions' => Auth::user()->hasDirectPermission('update exam questions'),
             'canDeleteExamQuestions' => Auth::user()->hasDirectPermission('delete exam questions'),

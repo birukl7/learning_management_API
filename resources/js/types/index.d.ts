@@ -346,3 +346,12 @@ export interface Exam {
     created_at: string 
     updated_at: string 
   }
+
+  export interface PaidExam{
+    id: number
+    expired: number 
+    user: User
+    subscriptionRequest: SubscriptionRequest
+    created_at: string 
+    updated_at: string 
+  }

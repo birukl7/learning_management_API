@@ -153,6 +153,7 @@ class CourseController extends Controller
                 'expired' => $paidCourse->expired,
                 'user' => $paidCourse->user,
                 'subscriptionRequest' => $subscriptionRequest,
+                'created_at' => $paidCourse->created_at
             ];
         });
 

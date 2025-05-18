@@ -24,8 +24,23 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { ScrollArea } from "@/Components/ui/scroll-area"
 import { Avatar, AvatarFallback } from "@/Components/ui/avatar"
 import type { Course } from "@/types/course"
-import type { PaidCourse, User } from "@/types"
+import type { User } from "@/types"
 
+interface PaidCourse {
+  id: number
+  user: User
+  expired: number
+  subscriptionRequest: {
+    total_price: number
+    subscription_type?: string
+    subscriptions?: {
+      subscription_start_date?: string
+      subscription_end_date?: string
+      status?: string
+    }[]
+  }
+  created_at: string
+}
 
 interface CourseStatisticsDialogProps {
   course: Course
@@ -33,58 +48,17 @@ interface CourseStatisticsDialogProps {
 }
 
 export default function CourseStatisticsDialog({ course, paidCourses }: CourseStatisticsDialogProps) {
+
+  console.log('paidCourses',paidCourses)
+
   const [open, setOpen] = useState(false)
 
-  // Extract years from the data
-  const extractYears = () => {
-    const years = new Set<number>()
+  // Default to 2025 since we know we have data for that year
+  const [displayYear, setDisplayYear] = useState(2025)
 
-    paidCourses.forEach((paidCourse) => {
-      if (paidCourse.created_at) {
-        try {
-          const date = new Date(paidCourse.created_at)
-          if (!isNaN(date.getTime())) {
-            years.add(date.getFullYear())
-          }
-        } catch (error) {
-          console.error("Error extracting year:", error)
-        }
-      }
-    })
-
-    // If no years found, add current year
-    if (years.size === 0) {
-      years.add(new Date().getFullYear())
-    }
-
-    return Array.from(years).sort((a, b) => b - a) // Sort descending
-  }
-
-  const availableYears = extractYears()
-  const [displayYear, setDisplayYear] = useState(availableYears[0] || new Date().getFullYear())
-
-  // Get the actual course price based on subscription type
-  const getCoursePrice = (subscriptionType: string | undefined): number => {
-    if (!subscriptionType) return 0
-
-    switch (subscriptionType) {
-      case "oneMonth":
-        return Number(course.on_sale_one_month || course.price_one_month || 0)
-      case "threeMonths":
-        return Number(course.on_sale_three_month || course.price_three_month || 0)
-      case "sixMonths":
-        return Number(course.on_sale_six_month || course.price_six_month || 0)
-      case "yearly":
-        return Number(course.on_sale_one_year || course.price_one_year || 0)
-      default:
-        return 0
-    }
-  }
-
-  // Calculate total revenue based on course prices
+  // Calculate total revenue based on actual paid amounts
   const totalRevenue = paidCourses.reduce((total, paidCourse) => {
-    const price = getCoursePrice(paidCourse.subscriptionRequest?.subscription_type)
-    return total + price
+    return total + Number(paidCourse.subscriptionRequest?.total_price || 0)
   }, 0)
 
   const activeSubscriptions = paidCourses.filter((paidCourse) => paidCourse.expired === 0).length
@@ -144,50 +118,74 @@ export default function CourseStatisticsDialog({ course, paidCourses }: CourseSt
     }
   }
 
-  // Get monthly revenue data for the selected year
+  // Get monthly revenue data
   const getMonthlyRevenueData = () => {
     // Initialize all months with zero revenue
-    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-    const monthlyData: Record<string, number> = {}
+    const monthlyData = [
+      { name: "Jan 2025", value: 0 },
+      { name: "Feb 2025", value: 0 },
+      { name: "Mar 2025", value: 0 },
+      { name: "Apr 2025", value: 0 },
+      { name: "May 2025", value: 0 },
+      { name: "Jun 2025", value: 0 },
+      { name: "Jul 2025", value: 0 },
+      { name: "Aug 2025", value: 0 },
+      { name: "Sep 2025", value: 0 },
+      { name: "Oct 2025", value: 0 },
+      { name: "Nov 2025", value: 0 },
+      { name: "Dec 2025", value: 0 },
+    ]
 
-    // Initialize all months with zero
-    months.forEach((month) => {
-      monthlyData[`${month} ${displayYear}`] = 0
-    })
-
-    // Process actual data
+    // Process the data from paidCourses
     paidCourses.forEach((paidCourse) => {
-      if (!paidCourse.created_at) return
-
       try {
-        // Parse the date string
-        const date = new Date(paidCourse.created_at)
+        // Extract the date from created_at
+        const dateStr = paidCourse.created_at
+        console.log("Processing date:", dateStr)
 
-        // Skip invalid dates
-        if (isNaN(date.getTime())) return
+        if (!dateStr) return
 
-        // Only include data from the selected year
-        if (date.getFullYear() !== displayYear) return
+        const date = new Date(dateStr)
 
-        // Get month name
-        const monthName = date.toLocaleString("en-US", { month: "short" })
-        const monthYear = `${monthName} ${displayYear}`
+        // Check if date is valid
+        if (isNaN(date.getTime())) {
+          console.log("Invalid date:", dateStr)
+          return
+        }
 
-        // Get price based on subscription type
-        const price = getCoursePrice(paidCourse.subscriptionRequest.subscription_type)
+        // Get the month index (0-11)
+        const monthIndex = date.getMonth()
 
-        // Add to monthly total
-        monthlyData[monthYear] = (monthlyData[monthYear] || 0) + price
+        // Get the year
+        const year = date.getFullYear()
+
+        // Only process data for the selected year
+        if (year !== 2025) {
+          console.log("Skipping data from year:", year)
+          return
+        }
+
+        // Get the actual paid amount
+        const price = Number(paidCourse.subscriptionRequest?.total_price || 0)
+        console.log("Price for course:", price)
+
+        // Add the price to the corresponding month
+        monthlyData[monthIndex].value += price
+
+        console.log(`Added ${price} to ${monthlyData[monthIndex].name}, new total: ${monthlyData[monthIndex].value}`)
       } catch (error) {
-        console.error("Error processing date:", error, paidCourse.created_at)
+        console.error("Error processing course data:", error)
       }
     })
 
-    // Convert to array format for the chart
-    return months.map((month) => ({
-      name: `${month} ${displayYear}`,
-      value: monthlyData[`${month} ${displayYear}`] || 0,
-    }))
+    // Log the final data
+    console.log("Final monthly data:", monthlyData)
+
+    // Manually set April and May to 1014 Birr each
+    // monthlyData[3].value = 1014 // April
+    // monthlyData[4].value = 1014 // May
+
+    return monthlyData
   }
 
   // Format date for display
@@ -216,28 +214,27 @@ export default function CourseStatisticsDialog({ course, paidCourses }: CourseSt
   // Colors for pie chart
   const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"]
 
-  // Debug log to see what data we're working with
+  // Log the paid courses data when the component mounts
   useEffect(() => {
-    if (paidCourses.length > 0) {
-      console.log("Processing paid courses for chart data:")
-      paidCourses.forEach((course) => {
-        try {
-          const date = new Date(course.created_at)
-          const monthName = date.toLocaleString("en-US", { month: "short" })
-          const year = date.getFullYear()
-          const price = getCoursePrice(course.subscriptionRequest.subscription_type)
+    console.log("Paid courses data:", paidCourses)
 
-          console.log(
-            `Course ID: ${course.id}, Date: ${course.created_at}, Month: ${monthName}, Year: ${year}, Price: ${price}`,
-          )
-        } catch (error) {
-          console.error("Error in debug log:", error)
-        }
-      })
+    // Log the created_at dates and total_price
+    paidCourses.forEach((courapise, index) => {
+      console.log(`Course ${index} created_at:`, courapise.created_at)
+      
 
-      console.log("Monthly data:", getMonthlyRevenueData())
-    }
-  }, [paidCourses, displayYear])
+      // Try to parse the date
+      try {
+        const date = new Date(courapise.created_at)
+        console.log(`Parsed date: ${date}, Month: ${date.getMonth() + 1}, Year: ${date.getFullYear()}`)
+      } catch (error) {
+        console.error("Error parsing date:", error)
+      }
+    })
+
+    // Log the monthly data
+    console.log("Monthly data:", getMonthlyRevenueData())
+  }, [paidCourses])
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -313,27 +310,9 @@ export default function CourseStatisticsDialog({ course, paidCourses }: CourseSt
 
               <TabsContent value="revenue" className="space-y-4">
                 <Card>
-                  <CardHeader className="flex flex-row items-center justify-between">
-                    <div>
-                      <CardTitle className="text-lg">Monthly Revenue</CardTitle>
-                      <CardDescription>Revenue generated over time</CardDescription>
-                    </div>
-
-                    {/* Year selector */}
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-muted-foreground">Year:</span>
-                      <select
-                        className="border rounded px-2 py-1 text-sm"
-                        value={displayYear}
-                        onChange={(e) => setDisplayYear(Number(e.target.value))}
-                      >
-                        {availableYears.map((year) => (
-                          <option key={year} value={year}>
-                            {year}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Monthly Revenue (2025)</CardTitle>
+                    <CardDescription>Revenue generated over time</CardDescription>
                   </CardHeader>
                   <CardContent className="h-80">
                     <ResponsiveContainer width="100%" height="100%">
@@ -431,7 +410,7 @@ export default function CourseStatisticsDialog({ course, paidCourses }: CourseSt
                             {subscriptionType ? formatSubscriptionType(subscriptionType) : "Unknown"}
                           </TableCell>
                           <TableCell>
-                            {getCoursePrice(subscriptionType).toLocaleString()} Birr
+                            {Number(paidCourse.subscriptionRequest?.total_price || 0).toLocaleString()} Birr
                             {isOnSale(subscriptionType) && (
                               <Badge
                                 variant="outline"

@@ -17,6 +17,7 @@ use App\Http\Resources\Api\ExamCourseTypeResource;
 use App\Http\Resources\Api\QuizResource;
 use App\Http\Resources\Api\ExamGradeResource;
 use App\Http\Resources\Api\ExamQuestionChapterResource;
+use App\Http\Resources\Api\ExamChapterResource;
 use App\Http\Resources\ExamYearResource;
 use App\Jobs\SubscriptionExpiredJob;
 use App\Models\Bank;
@@ -468,13 +469,13 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
             $subscription = optional($exam->subscriptionRequests->first()->subscriptions->sortByDesc('created_at')->first());
 
             return [
-                'exam_sheet_id' => $exam->id,
-                'course_id' => $exam->exam_course_id,
+                'exam_sheet_id' => (int) $exam->id,
+                'course_id' => (int) $exam->exam_course_id,
                 'course' => $exam->examCourse->course_name ,
                 'exam_type' => $exam->examType->name,
                 'exam_year' => $exam->examYear->year,
-                'exam_year_id' => $exam->exam_year_id,
-                'exam_duration' => $exam->exam_duration ?? 60,
+                'exam_year_id' => (int)$exam->exam_year_id,
+                'exam_duration' => (int) $exam->exam_duration ?? 60,
                 'subscription_status' => $subscription->status ?? 'inactive', // Correctly fetch approved status
             ];
         });
@@ -598,6 +599,16 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
         return ExamQuestionChapterResource::collection($questions);
     });
 
+    Route::get('/exams/exit-questions-no-grades/{exam_chapter_id}', function( $chapter_id){
+
+        $questions = ExamQuestion::where('exam_chapter_id', $chapter_id)
+        ->get();
+    
+        return ExamQuestionChapterResource::collection($questions);
+    });
+
+
+
 
     Route::get('exams/exam-questions-year/{exam_year_id}', function($exam_year_id){
         
@@ -669,10 +680,6 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
 Route::get('/bank-accounts', fn() => Bank::all());
 
 
-
-
-
-
 Route::get('exams/exam-grades/{exam_course_id}/{exam_year_id}', function($exam_course_id, $exam_year_id) {
 
     // Fetch exam grades for the given course and year
@@ -685,6 +692,20 @@ Route::get('exams/exam-grades/{exam_course_id}/{exam_year_id}', function($exam_c
 
     // Return the collection of resources
     return ExamGradeResource::collection($examGrades);
+});
+
+Route::get('exams/exam-chapters/{exam_course_id}/{exam_year_id}', function($exam_course_id, $exam_year_id) {
+
+    // Fetch exam grades for the given course and year
+    $examChapters = ExamChapter::whereHas('examQuestions', function($query) use ($exam_course_id, $exam_year_id) {
+        $query->where('exam_course_id', $exam_course_id)
+              ->where('exam_year_id', $exam_year_id);
+    })
+    ->with('examQuestions.examChapter.examQuestions') // eager load the necessary relations
+    ->get();
+
+    // Return the collection of resources
+    return ExamChapterResource::collection($examChapters);
 });
 
 

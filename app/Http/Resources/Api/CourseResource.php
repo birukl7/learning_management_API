@@ -42,7 +42,7 @@ class CourseResource extends JsonResource
         }
 
         return [
-            'id' => $this->id,
+            'id' => (int) $this->id,
             'course_name' => $this->course_name,
             'thumbnail' => $this->thumbnail && str_starts_with($this->thumbnail, '/id')
                 ? 'https://picsum.photos' . $this->thumbnail
@@ -75,7 +75,7 @@ class CourseResource extends JsonResource
                     ];
                 });
             }),
-            'chapter_count' => $this->relationLoaded('chapters') ? $this->chapters->count() : 0,
+            'chapter_count' => $this->relationLoaded('chapters') ? (int)$this->chapters->count() : 0,
 
             'batch' => $this->whenLoaded('batch', function () {
                 return [
@@ -99,8 +99,8 @@ class CourseResource extends JsonResource
             'is_liked' => $user ? $this->isLikedByUser($user->id) : false,
 
             // Add likes_count and saves_count
-            'likes_count' => $this->likes()->count(),
-            'saves_count' => $this->saves()->count(),
+            'likes_count' => (int) $this->likes()->count(),
+            'saves_count' => (int) $this->saves()->count(),
 
             // Include the subscription status only if a user is authenticated
             'subscription_status' => $user ? $subscriptionStatus : null,

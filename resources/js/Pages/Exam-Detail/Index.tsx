@@ -6,11 +6,12 @@ import { PlusCircle, Search } from "lucide-react"
 import type { Exam, ExamChapter, ExamQuestion } from "@/types"
 import QuestionCard from "../Exams/QuestionCard"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/Components/ui/select"
-import { Link, router, useForm } from "@inertiajs/react"
+import { Link, useForm } from "@inertiajs/react"
 import { useCallback, useEffect, useState } from "react"
 import axios from "axios"
 import { Input } from "@/Components/ui/input"
 import BackLink from "@/Components/BackLink"
+import { router } from "@inertiajs/react"
 
 interface IndexProps {
   exam: Exam
@@ -44,7 +45,6 @@ const Index = ({
   exam_chapters,
   filters,
 }: IndexProps) => {
-
   const { data, setData } = useForm({
     search: filters?.search || "",
     examGrade: filters?.examGrade || "",
@@ -55,19 +55,40 @@ const Index = ({
 
   const [filteredExamChapters, setFilteredExamChapters] = useState<ExamChapter[]>([])
 
+  // Check if the current exam type is in the excluded list
+  const isExcludedExamType = () => {
+    const excludedExamTypes = ["NGAT", "EXIT", "SAT", "UAT", "EXAM"]
+    return excludedExamTypes.includes(exam.exam_type?.name || "")
+  }
+
   useEffect(() => {
-    if (data.examGrade) {
+    if (isExcludedExamType()) {
+      // For excluded exam types, fetch chapters directly without grade
+      fetchExamChaptersForExcludedTypes(exam.exam_course_id?.toString() || "")
+    } else if (data.examGrade) {
+      // For regular exam types, fetch chapters based on grade
       fetchExamChapters(exam.exam_course_id?.toString() || "", data.examGrade)
     } else {
       setFilteredExamChapters([])
     }
-  }, [data.examGrade])
-  
+  }, [data.examGrade, exam.exam_course_id, exam.exam_type?.name])
+
+  // New function to fetch chapters for excluded exam types
+  const fetchExamChaptersForExcludedTypes = useCallback(async (examCourseId: string) => {
+    if (!examCourseId) return
+    try {
+      const response = await axios.get(`/api/exam-courses/${examCourseId}/chapters`)
+      setFilteredExamChapters(response.data)
+    } catch (error) {
+      console.error("Error fetching exam chapters for excluded types:", error)
+      setFilteredExamChapters([])
+    }
+  }, [])
 
   const fetchExamChapters = useCallback(async (examCourseId: string, gradeId: string) => {
     if (!examCourseId) return
     try {
-      const response = await axios.get(`/api/exam-courses-chapters/${examCourseId}/${gradeId}`)
+      const response = await axios.get(`/api/exam-courses/${examCourseId}/grades/${gradeId}/chapters`)
       setFilteredExamChapters(response.data)
     } catch (error) {
       console.error("Error fetching exam chapters:", error)
@@ -76,9 +97,7 @@ const Index = ({
   }, [])
 
   const showExamGrade = () => {
-    const excludedExamTypes = ["NGAT", "EXIT", "SAT", "UAT", "EXAM"]
-
-    return !excludedExamTypes.includes(exam.exam_type?.name || "")
+    return !isExcludedExamType()
   }
 
   const handleExamGradeChange = (value: string) => {
@@ -154,7 +173,7 @@ const Index = ({
       }
       headerAction={
         <>
-          <BackLink href={route('exams-new.show', exam.exam_type_id)} text={"Back to "+ exam.exam_type?.name} />
+          <BackLink href={route("exams-new.show", exam.exam_type_id)} text={"Back to " + exam.exam_type?.name} />
           {canAddExamQuestions ? (
             <CreateExamQuestionAlert exam={exam} exam_grades={exam_grades} />
           ) : (
@@ -186,7 +205,11 @@ const Index = ({
               </Select>
             )}
 
-            <Select value={data.examChapter} onValueChange={handleExamChapterChange} disabled={!data.examGrade}>
+            <Select
+              value={data.examChapter}
+              onValueChange={handleExamChapterChange}
+              disabled={!isExcludedExamType() && !data.examGrade}
+            >
               <SelectTrigger className="w-full sm:w-[200px]">
                 <SelectValue placeholder="Select Chapter" />
               </SelectTrigger>
@@ -247,7 +270,6 @@ const Index = ({
                 options: question.options,
                 answer: question.answer,
               }}
-             
               examGrades={exam_grades}
               canEdit={canUpdateExamQuestions}
               canDelete={canDeleteExamQuestions}
@@ -277,4 +299,3 @@ const Index = ({
 }
 
 export default Index
-

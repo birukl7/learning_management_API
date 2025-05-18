@@ -14,9 +14,16 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-        $user = User::create([
-            'name' => 'Admin Admin',
-            'email' => 'exceletacademy.com',
+        $user1 = User::create([
+            'name' => 'Admin',
+            'email' => 'admin@exceletacademy.com',
+            'password' => bcrypt('admin@admin@admin'), // Be sure to hash passwords!
+            'email_verified_at' => Carbon::now(),
+        ]);
+
+        $user2 = User::create([
+            'name' => 'Yohannes K',
+            'email' => 'yohannesk2022@gmail.com',
             'password' => bcrypt('admin@admin@admin'), // Be sure to hash passwords!
             'email_verified_at' => Carbon::now(),
         ]);
@@ -24,7 +31,9 @@ class UserSeeder extends Seeder
         $adminRoleApi = Role::where('name', 'admin')->where('guard_name', 'api')->first();
         $adminRoleWeb = Role::where('name', 'admin')->where('guard_name', 'web')->first();
 
-        $user->assignRole([$adminRoleApi, $adminRoleWeb]);
+        $user1->assignRole([$adminRoleApi, $adminRoleWeb]);
+
+        $user2->assignRole([$adminRoleApi, $adminRoleWeb]);
 
         // Get all the permissions by name
         $permissions = [
@@ -83,6 +92,7 @@ class UserSeeder extends Seeder
         ];
 
         // Sync all the permissions to the user
-        $user->syncPermissions($permissions);
+        $user1->syncPermissions($permissions);
+        $user2->syncPermissions($permissions);
     }
 }

@@ -138,6 +138,24 @@ class CourseController extends Controller
 
         $chapters = $course->chapters()->withCount('contents')->get();
 
+        $paidCourses = $course->paidCourses()->with('user')->get();
+
+        $paidCoursesWithSubscriptions = $paidCourses->map(function ($paidCourse) use ($course) {
+            $subscriptionRequest = $paidCourse->user
+                ->subscriptionRequests()
+                ->whereHas('courses', fn($q) => $q->where('courses.id', $course->id))
+                ->with('subscriptions')
+                ->latest()
+                ->first(); // or ->first() if only one expected
+        
+            return [
+                'id' => $paidCourse->id,
+                'expired' => $paidCourse->expired,
+                'user' => $paidCourse->user,
+                'subscriptionRequest' => $subscriptionRequest,
+            ];
+        });
+
 
         return Inertia::render('courses/Show', [
             'course' => $course,
@@ -150,9 +168,9 @@ class CourseController extends Controller
             'grades' => Grade::all(),
             'departments' => Department::all(),
             'batches' => Batch::all(),
-            'enrolledStudents' => $course->paidCourses->count(),
             'chaptersCount' => $course->chapters->count(),
-            'paidCourses' => $course->paidCourses->count(),
+            'enrolledStudents' => $course->paidCourses->count(),
+            'paidCourses'=> $paidCoursesWithSubscriptions,
             'canUpdate' => Auth::user()->hasDirectPermission('update courses'),
             'canDelete' => Auth::user()->hasDirectPermission('delete courses'),
             'canAddChapters' => Auth::user()->hasDirectPermission('add chapters'),

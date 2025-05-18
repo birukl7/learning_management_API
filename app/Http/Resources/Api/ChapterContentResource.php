@@ -39,13 +39,13 @@ class ChapterContentResource extends JsonResource
         }
 
         return [
-            'order' => $this->order,
+            'order' => (int) $this->order,
             'videos' => array_values($videos),  // Remove duplicate video entries
             'documents' => array_values($documents),  // Remove duplicate document entries
             'quizzes' => $this->quizzes->map(fn($quiz) => [
                 'id' => $quiz->id,
                 'title' => $quiz->title,
-                'number_of_questions' => $quiz->quizQuestions->count()
+                'number_of_questions' => (int) $quiz->quizQuestions->count()
             ])->toArray(),
         ];
     }

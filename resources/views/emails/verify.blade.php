@@ -85,23 +85,15 @@
 <body>
     <div class="container">
         <div class="logo">
-            <svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                <defs>
-                    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stop-color="#3490dc" stop-opacity="1" />
-                        <stop offset="100%" stop-color="#6574cd" stop-opacity="1" />
-                    </linearGradient>
-                    <filter id="shadow">
-                        <feDropShadow dx="2" dy="2" stdDeviation="3" flood-opacity="0.3" />
-                    </filter>
-                </defs>
-                <path d="M20 80 L60 80 L60 70 L30 70 L30 20 L20 20 Z" fill="url(#grad1)" filter="url(#shadow)" />
-                <path d="M25 75 L55 75 L55 65 L35 65 L35 25 L25 25 Z" fill="#3490dc" />
-                <path d="M27 27 L27 73 L53 73 L53 71 L29 71 L29 27 Z" fill="white" fill-opacity="0.3" />
-                <circle cx="70" cy="30" r="15" fill="#6574cd" filter="url(#shadow)" />
-                <path d="M65 30 L75 30 M70 25 L70 35" stroke="white" stroke-width="3" stroke-linecap="round" />
+            <svg id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="50" height="50">
+              <path
+                fill="#191d45"
+                stroke-width="0"
+                d="M6.11,8.86H1.89l.66-1.61h4.21l-.66,1.61ZM4.2,3.25l-.68,1.65h4.21l.68-1.65h-4.21ZM13.1,8.64c-.21.14-.47.28-.79.41-.26.11-.5.18-.71.23l1.48,3.52h1.76l-1.74-4.16ZM2.51,7.25h4.26M11.44,7.94,15.55,5.15l-2.33.4c-.12.02-.17.16-.09.25l.36.43c-.3.34-1,1.02-2.13,1.4-1.05.35-1.95.27-2.4.19l.11-.27.07-.18.86-2.03.97,2.19c.23-.06.5-.15.78-.29.26-.12.48-.25.66-.37-.52-1.24-.99-2.39-1.52-3.62h-1.81l-.68,1.65-.96,2.35-.66,1.61-.84,2.04h1.77l.54-1.39.11-.26c.56.13,1.69.31,3.04-.06,1.62-.44,2.61-1.42,3-1.84.08.1.16.19.25.29.08.09.22.06.26-.05l.36-1,.44-1.23c.04-.11-.06-.22-.17-.2ZM12.39,11.13H.96l-.69,1.67h12.81l-.69-1.67Z"
+              />
             </svg>
         </div>
+          
         
         <h1>Hello {{ $user->name }},</h1>
         <p>Thank you for registering. Please verify your email address to complete your account setup.</p>
@@ -117,7 +109,7 @@
         <p>If you did not create an account, no further action is required.</p>
         
         <div class="footer">
-            <p>This email was sent by Your App Name. If you have any questions, please contact our support team.</p>
+            <p>This email was sent by Excelet. If you have any questions, please contact our support team.</p>
         </div>
     </div>
 </body>

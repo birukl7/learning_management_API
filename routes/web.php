@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\Api\DepartmentController;
 use App\Http\Controllers\ExamCourseController;
 use App\Http\Controllers\ExamNewController;
 use App\Http\Controllers\ProfileController;
@@ -20,7 +19,6 @@ use App\Http\Controllers\Web\StudentManagementController;
 use App\Http\Controllers\Web\SubscriptionController;
 use App\Http\Controllers\Web\UserManagementController;
 use App\Http\Controllers\Web\YoutubeContentController;
-use App\Models\Category;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 

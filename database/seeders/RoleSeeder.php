@@ -28,10 +28,10 @@ class RoleSeeder extends Seeder
                     'guard_name' => 'web',
                 ]);
 
-                Role::factory()->create([
-                    'name' => $name,
-                    'guard_name' => 'web',
-                ]);
+                // Role::factory()->create([
+                //     'name' => $name,
+                //     'guard_name' => 'web',
+                // ]);
             }
         }
     }

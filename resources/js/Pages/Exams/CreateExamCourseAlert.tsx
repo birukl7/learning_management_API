@@ -28,7 +28,6 @@ const CreateExamCourseAlert = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false)
   const [chapters, setChapters] = useState<{ title: string; sequence_order: number }[]>([])
-  const [isNewCourse, setIsNewCourse] = useState(false)
   const [examCourses, setExamCourses] = useState<ExamCourse[]>([])
   const [chapterErrors, setChapterErrors] = useState<{ [key: number]: string }>({})
   const [duplicateError, setDuplicateError] = useState<string | null>(null)
@@ -219,9 +218,6 @@ const CreateExamCourseAlert = ({
   const submit: FormEventHandler = (e) => {
     e.preventDefault()
 
-    // Add this debug line
-    console.log("Submitting form with data:", data)
-
     // Reset duplicate error
     setDuplicateError(null)
 
@@ -230,13 +226,13 @@ const CreateExamCourseAlert = ({
       return // Stop submission if validation fails
     }
 
-    // Check for duplicate course name if creating a new course
-    if (isNewCourse && data.course_name) {
+    // Check for duplicate course name
+    if (data.course_name) {
       const normalizedNewName = data.course_name.toLowerCase()
       const duplicateCourse = examCourses.find((course) => course.course_name.toLowerCase() === normalizedNewName)
 
       if (duplicateCourse) {
-        setDuplicateError("This course name already exists. Please select from the list or choose a different name.")
+        setDuplicateError("This course name already exists. Please choose a different name.")
         return // Stop submission
       }
     }
@@ -256,7 +252,6 @@ const CreateExamCourseAlert = ({
           setIsOpen(false)
           reset()
           setChapters([])
-          setIsNewCourse(false)
           setChapterErrors({})
         },
         onError: (errors) => {
@@ -290,7 +285,6 @@ const CreateExamCourseAlert = ({
                   setData("exam_type_id", value)
                   setData("exam_course_id", "")
                   setData("stream", null)
-                  setIsNewCourse(false)
                 }}
               >
                 <SelectTrigger>
@@ -329,71 +323,21 @@ const CreateExamCourseAlert = ({
               )}
 
             <div className="space-y-2">
-              <Label htmlFor="exam_course">Exam Course</Label>
-              {isNewCourse ? (
-                <div className="space-y-2">
-                  <div className="flex items-center space-x-2">
-                    <Input
-                      id="course_name"
-                      value={data.course_name}
-                      onChange={(e) => {
-                        const formattedName = formatCourseTitle(e.target.value)
-                        setData("course_name", formattedName)
-                        // Clear duplicate error when user types
-                        if (duplicateError) setDuplicateError(null)
-                      }}
-                      placeholder="Enter new course name"
-                      className={duplicateError ? "border-red-500" : ""}
-                    />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        setIsNewCourse(false)
-                        setData("course_name", "")
-                        setDuplicateError(null)
-                      }}
-                    >
-                      Back to selection
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                <Select
-                  value={data.exam_course_id}
-                  onValueChange={(value) => {
-                    if (value === "new") {
-                      setIsNewCourse(true)
-                      setData("exam_course_id", "")
-                      setData("course_name", "")
-                    } else {
-                      const selectedCourse = examCourses.find((course) => course.id.toString() === value)
-                      setData((prevData) => ({
-                        ...prevData,
-                        exam_course_id: value,
-                        course_name: selectedCourse ? selectedCourse.course_name : "",
-                      }))
-                    }
-                  }}
-                  disabled={!data.exam_type_id}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select or create new course" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {uniqueExamCourses.map((course) => (
-                      <SelectItem key={course.id} value={course.id.toString()}>
-                        {course.course_name}
-                      </SelectItem>
-                    ))}
-                    <SelectItem value="new">Create New Course</SelectItem>
-                  </SelectContent>
-                </Select>
-              )}
+              <Label htmlFor="course_name">Course Name</Label>
+              <Input
+                id="course_name"
+                value={data.course_name}
+                onChange={(e) => {
+                  const formattedName = formatCourseTitle(e.target.value)
+                  setData("course_name", formattedName)
+                  // Clear duplicate error when user types
+                  if (duplicateError) setDuplicateError(null)
+                }}
+                placeholder="Enter course name"
+                className={duplicateError ? "border-red-500" : ""}
+              />
               {duplicateError && <p className="text-red-500 text-sm">{duplicateError}</p>}
               {errors.course_name && <p className="text-red-500 text-sm">{errors.course_name}</p>}
-              {errors.exam_course_id && <p className="text-red-500 text-sm">{errors.exam_course_id}</p>}
             </div>
           </div>
         </ScrollArea>
@@ -404,7 +348,6 @@ const CreateExamCourseAlert = ({
               setIsOpen(false)
               reset()
               setChapters([])
-              setIsNewCourse(false)
               setChapterErrors({})
             }}
           >

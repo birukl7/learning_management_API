@@ -1,5 +1,5 @@
 import type { PageProps } from "@/types"
-import { Head, Link, usePage } from "@inertiajs/react"
+import { Head, Link } from "@inertiajs/react"
 import ApplicationLogo from "@/Components/ApplicationLogo"
 import { BookOpen, Users, Award, BarChart2 } from "lucide-react"
 
@@ -8,7 +8,7 @@ export default function Welcome({ auth }: PageProps<{}>) {
 
   return (
     <>
-      <Head title="Welcome">
+      <Head title="">
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet" />

@@ -283,8 +283,10 @@ export interface SubscriptionRequest{
             exam_course: string}[] | null
         total_price: number
         proof_of_payment: string
+        subscription_type: string
         transaction_id: string
         status: 'Pending' | 'Approved' | 'Rejected'
+        subscriptions?: Subscription[]
         created_at?: string;
         updated_at?: string;
 }
@@ -310,7 +312,6 @@ export interface Subscription{
         status: string;
         created_at?: string;
         updated_at?: string;
-  
 }
 
 export interface Exam {
@@ -334,4 +335,14 @@ export interface Exam {
     exam_course?: ExamCourse | null
     exam_year?: ExamYear
     exam_type?: ExamType
+  }
+
+
+  export interface PaidCourse{
+    id: number
+    expired: number 
+    user: User
+    subscriptionRequest: SubscriptionRequest
+    created_at: string 
+    updated_at: string 
   }

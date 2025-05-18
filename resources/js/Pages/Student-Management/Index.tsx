@@ -147,7 +147,7 @@ const Index = ({users, queryParams={}, success, canBan, canUnBan}: IndexProps) =
                     </TableHead>
 
 
-                    <TableHead onClick={()=> sortChanged('create_at')} className=' text-nowrap'>
+                    <TableHead onClick={()=> sortChanged('created_at')} className=' text-nowrap'>
                       <div className='flex items-center gap-x-1'>
                         <span className='text-nowrap'>Registration Date</span>
                         <div className=' hover:cursor-pointer'>

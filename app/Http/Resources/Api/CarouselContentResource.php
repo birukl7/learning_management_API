@@ -20,7 +20,7 @@ class CarouselContentResource extends JsonResource
             'tag'=> $this->tag,
             'image_url' => url(Storage::url($this->image_url)),
             'status' => $this->status,
-            'order' => $this->order,
+            'order' => (int) $this->order,
         ];
     }
 }

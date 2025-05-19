@@ -17,7 +17,7 @@ class ContentResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->id,
-            'order' => $this->order,
+            'order' => (int) $this->order,
             'chapter_id' => $this->chapter_id,
             'youtube_contents' => $this->whenLoaded('youtubeContents', function () {
                 return $this->youtubeContents->map(function ($youtubeContent) {

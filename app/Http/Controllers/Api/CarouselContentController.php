@@ -10,7 +10,7 @@ use Illuminate\Http\Request;
 class CarouselContentController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     rome* Display a listing of the resource.
      */
     public function index()
     {

@@ -150,6 +150,7 @@ class CourseController extends Controller
         
             return [
                 'id' => $paidCourse->id,
+                'course_price' => $paidCourse->course_price,
                 'expired' => $paidCourse->expired,
                 'user' => $paidCourse->user,
                 'subscriptionRequest' => $subscriptionRequest,

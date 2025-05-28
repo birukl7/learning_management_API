@@ -44,7 +44,9 @@ class SubscriptionController extends Controller
                 'subscriptionRequest.user',
                 'subscriptionRequest.courses',
                 'subscriptionRequest.exams',
-                'subscriptionRequest.exams.examCourse'
+                'subscriptionRequest.exams.examCourse',
+                'subscriptionRequest.exams.examYear'
+                
             ])->get()),
             'subscriptionRequests' => SubscriptionRequestResource::collection($subscriptionRequests),
             'filters' => $request->only(['status']),
@@ -161,20 +163,42 @@ class SubscriptionController extends Controller
     
             // Create PaidCourse for approved courses
 // Create or update PaidCourse for approved courses
+            $subscriptionType = $subscriptionRequest->subscription_type;
+            $normalizedTypes = [
+                'oneMonth' => 'one_month',
+                'threeMonths' => 'three_month',
+                'sixMonths' => 'six_month',
+                'yearly' => 'one_year',
+            ];
+
+            $normalizedType = $normalizedTypes[$subscriptionType] ?? 'one_month';
+
             if ($subscriptionRequest->courses->isNotEmpty()) {
                 foreach ($subscriptionRequest->courses as $course) {
+                    
+                    $saleField = 'on_sale_' . $normalizedType;
+                    $regularField = 'price_' . $normalizedType;
+
+                    $coursePrice = $course->$saleField !== null
+                        ? $course->$saleField
+                        : $course->$regularField;
+
                     $existingPaidCourse = PaidCourse::where('user_id', $subscriptionRequest->user_id)
                         ->where('course_id', $course->id)
                         ->first();
 
                     if ($existingPaidCourse) {
                         if ($existingPaidCourse->expired) {
-                            $existingPaidCourse->update(['expired' => false]);
+                            $existingPaidCourse->update([
+                                'expired' => false,
+                                'course_price' => $coursePrice,
+                            ]);
                         }
                     } else {
                         PaidCourse::create([
                             'user_id' => $subscriptionRequest->user_id,
                             'course_id' => $course->id,
+                            'course_price' => $coursePrice,
                         ]);
                     }
                 }
@@ -183,22 +207,34 @@ class SubscriptionController extends Controller
             // Create or update PaidExam for approved exams
             if ($subscriptionRequest->exams->isNotEmpty()) {
                 foreach ($subscriptionRequest->exams as $exam) {
+                    $saleField = 'on_sale_' . $normalizedType;
+                    $regularField = 'price_' . $normalizedType;
+            
+                    $examPrice = $exam->$saleField !== null
+                        ? $exam->$saleField
+                        : $exam->$regularField;
+            
                     $existingPaidExam = PaidExam::where('user_id', $subscriptionRequest->user_id)
                         ->where('exam_id', $exam->id)
                         ->first();
-
+            
                     if ($existingPaidExam) {
                         if ($existingPaidExam->expired) {
-                            $existingPaidExam->update(['expired' => false]);
+                            $existingPaidExam->update([
+                                'expired' => false,
+                                'exam_price' => $examPrice,
+                            ]);
                         }
                     } else {
                         PaidExam::create([
                             'user_id' => $subscriptionRequest->user_id,
                             'exam_id' => $exam->id,
+                            'exam_price' => $examPrice,
                         ]);
                     }
                 }
             }
+            
 
     
             $subscriptionRequest->update(['status' => "Approved"]);

@@ -58,6 +58,7 @@ class ExamDetailController extends Controller
                 'id' => $paidExam->id,
                 'expired' => $paidExam->expired,
                 'user' => $paidExam->user,
+                'exam_price' => $paidExam->exam_price,
                 'subscriptionRequest' => $subscriptionRequest,
                 'created_at' => $paidExam->created_at
             ];

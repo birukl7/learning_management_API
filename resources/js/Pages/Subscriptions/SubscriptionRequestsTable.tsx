@@ -48,14 +48,14 @@ export function SubscriptionRequestsTable({subscriptionRequests}: SubscriptionRe
             <TableCell className="flex flex-wrap gap-2 items-center">{
                 request.courses.map((course)=>(
                   <Badge className="bg-white/80 text-black font-semibold px-3 py-1 rounded-full">
-                    {course.name}
+                    {course.name} 
                   </Badge>
                 ))
                 
               }{
                 request.exams?.map((exam)=>(
                   <Badge className="bg-white/80 text-black font-semibold px-3 py-1 rounded-full">
-                    {exam.exam_type} - {exam.exam_course}
+                    {exam.exam_type} - {exam.exam_course} 
                   </Badge>
                 ))
                 

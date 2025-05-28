@@ -19,7 +19,7 @@ import {
   Cell,
   Legend,
 } from "recharts"
-import { CalendarDays, DollarSign, Users, BarChart3, Activity, Calendar } from "lucide-react"
+import { CalendarDays, DollarSign, Users, BarChart3, Activity, Calendar } from 'lucide-react'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/Components/ui/table"
 import { ScrollArea } from "@/Components/ui/scroll-area"
 import { Avatar, AvatarFallback } from "@/Components/ui/avatar"
@@ -30,6 +30,7 @@ interface PaidCourse {
   id: number
   user: User
   expired: number
+  course_price: number // Added: actual price paid for the course
   subscriptionRequest: {
     total_price: number
     subscription_type?: string
@@ -48,17 +49,46 @@ interface CourseStatisticsDialogProps {
 }
 
 export default function CourseStatisticsDialog({ course, paidCourses }: CourseStatisticsDialogProps) {
-
-
   const [open, setOpen] = useState(false)
 
   // Default to 2025 since we know we have data for that year
   const [displayYear, setDisplayYear] = useState(2025)
 
-  // Calculate total revenue based on actual paid amounts
-  const totalRevenue = paidCourses.reduce((total, paidCourse) => {
-    return total + Number(paidCourse.subscriptionRequest?.total_price || 0)
+  // Get the actual price for a subscription type (for reference/comparison)
+  const getSubscriptionPrice = (subscriptionType: string | undefined) => {
+    if (!subscriptionType) return 0
+
+    switch (subscriptionType) {
+      case "oneMonth":
+        const oneMonthSale = Number(course.on_sale_one_month || 0)
+        const oneMonthRegular = Number(course.price_one_month || 0)
+        return oneMonthSale > 0 ? oneMonthSale : oneMonthRegular
+      case "threeMonths":
+        const threeMonthSale = Number(course.on_sale_three_month || 0)
+        const threeMonthRegular = Number(course.price_three_month || 0)
+        return threeMonthSale > 0 ? threeMonthSale : threeMonthRegular
+      case "sixMonths":
+        const sixMonthSale = Number(course.on_sale_six_month || 0)
+        const sixMonthRegular = Number(course.price_six_month || 0)
+        return sixMonthSale > 0 ? sixMonthSale : sixMonthRegular
+      case "yearly":
+        const yearlySale = Number(course.on_sale_one_year || 0)
+        const yearlyRegular = Number(course.price_one_year || 0)
+        return yearlySale > 0 ? yearlySale : yearlyRegular
+      default:
+        return 0
+    }
+  }
+
+  // Calculate total revenue based on actual course_price paid
+  const totalRevenue = paidCourses.reduce((total, paidCourse, index) => {
+    const actualPrice = Number(paidCourse.course_price || 0)
+    console.log(`Revenue calculation - Course ${index + 1}: ${actualPrice} Birr (Running total: ${total + actualPrice})`)
+    return total + actualPrice
   }, 0)
+
+  console.log("=== TOTAL REVENUE ===")
+  console.log(`Final total revenue: ${totalRevenue} Birr`)
 
   const activeSubscriptions = paidCourses.filter((paidCourse) => paidCourse.expired === 0).length
   const expiredSubscriptions = paidCourses.filter((paidCourse) => paidCourse.expired === 1).length
@@ -105,19 +135,19 @@ export default function CourseStatisticsDialog({ course, paidCourses }: CourseSt
 
     switch (type) {
       case "oneMonth":
-        return !!course.on_sale_one_month && course.on_sale_one_month < course.price_one_month
+        return Number(course.on_sale_one_month || 0) > 0
       case "threeMonths":
-        return !!course.on_sale_three_month && course.on_sale_three_month < course.price_three_month
+        return Number(course.on_sale_three_month || 0) > 0
       case "sixMonths":
-        return !!course.on_sale_six_month && course.on_sale_six_month < course.price_six_month
+        return Number(course.on_sale_six_month || 0) > 0
       case "yearly":
-        return !!course.on_sale_one_year && course.on_sale_one_year < course.price_one_year
+        return Number(course.on_sale_one_year || 0) > 0
       default:
         return false
     }
   }
 
-  // Get monthly revenue data
+  // Get monthly revenue data using actual course_price
   const getMonthlyRevenueData = () => {
     // Initialize all months with zero revenue
     const monthlyData = [
@@ -135,54 +165,61 @@ export default function CourseStatisticsDialog({ course, paidCourses }: CourseSt
       { name: "Dec 2025", value: 0 },
     ]
 
-    // Process the data from paidCourses
-    paidCourses.forEach((paidCourse) => {
-      try {
-        // Extract the date from created_at
-        const dateStr = paidCourse.created_at
-        console.log("Processing date:", dateStr)
+    console.log("=== DEBUGGING MONTHLY REVENUE ===")
+    console.log("Total paid courses:", paidCourses.length)
 
-        if (!dateStr) return
+    // Process the data from paidCourses
+    paidCourses.forEach((paidCourse, index) => {
+      try {
+        const dateStr = paidCourse.created_at
+        const actualPrice = Number(paidCourse.course_price || 0)
+
+        console.log(`Course ${index + 1}:`)
+        console.log(`  Date string: ${dateStr}`)
+        console.log(`  Subscription type: ${paidCourse.subscriptionRequest?.subscription_type}`)
+        console.log(`  Actual course price paid: ${actualPrice}`)
+
+        if (!dateStr) {
+          console.log(`  Skipping - no date`)
+          return
+        }
 
         const date = new Date(dateStr)
 
-        // Check if date is valid
         if (isNaN(date.getTime())) {
-          console.log("Invalid date:", dateStr)
+          console.log(`  Skipping - invalid date`)
           return
         }
 
-        // Get the month index (0-11)
-        const monthIndex = date.getMonth()
-
-        // Get the year
+        const monthIndex = date.getMonth() // 0-11
         const year = date.getFullYear()
 
-        // Only process data for the selected year
+        console.log(`  Parsed date: ${date}`)
+        console.log(`  Month index: ${monthIndex} (${monthlyData[monthIndex].name})`)
+        console.log(`  Year: ${year}`)
+
         if (year !== 2025) {
-          console.log("Skipping data from year:", year)
+          console.log(`  Skipping - not 2025`)
           return
         }
 
-        // Get the actual paid amount
-        const price = Number(paidCourse.subscriptionRequest?.total_price || 0)
-        console.log("Price for course:", price)
+        console.log(`  Adding ${actualPrice} to ${monthlyData[monthIndex].name}`)
+        console.log(`  Before: ${monthlyData[monthIndex].value}`)
 
-        // Add the price to the corresponding month
-        monthlyData[monthIndex].value += price
+        monthlyData[monthIndex].value += actualPrice
 
-        console.log(`Added ${price} to ${monthlyData[monthIndex].name}, new total: ${monthlyData[monthIndex].value}`)
+        console.log(`  After: ${monthlyData[monthIndex].value}`)
       } catch (error) {
-        console.error("Error processing course data:", error)
+        console.error(`Error processing course ${index}:`, error)
       }
     })
 
-    // Log the final data
-    console.log("Final monthly data:", monthlyData)
-
-    // Manually set April and May to 1014 Birr each
-    // monthlyData[3].value = 1014 // April
-    // monthlyData[4].value = 1014 // May
+    console.log("=== FINAL MONTHLY DATA ===")
+    monthlyData.forEach((month) => {
+      if (month.value > 0) {
+        console.log(`${month.name}: ${month.value} Birr`)
+      }
+    })
 
     return monthlyData
   }
@@ -215,25 +252,32 @@ export default function CourseStatisticsDialog({ course, paidCourses }: CourseSt
 
   // Log the paid courses data when the component mounts
   useEffect(() => {
-    console.log("Paid courses data:", paidCourses)
-
-    // Log the created_at dates and total_price
-    paidCourses.forEach((courapise, index) => {
-      console.log(`Course ${index} created_at:`, courapise.created_at)
-      
-
-      // Try to parse the date
-      try {
-        const date = new Date(courapise.created_at)
-        console.log(`Parsed date: ${date}, Month: ${date.getMonth() + 1}, Year: ${date.getFullYear()}`)
-      } catch (error) {
-        console.error("Error parsing date:", error)
-      }
+    console.log("=== COURSE DATA DEBUG ===")
+    console.log("Course prices:", {
+      oneMonth: course.price_one_month,
+      threeMonth: course.price_three_month,
+      sixMonth: course.price_six_month,
+      yearly: course.price_one_year,
+      onSaleOneMonth: course.on_sale_one_month,
+      onSaleThreeMonth: course.on_sale_three_month,
+      onSaleSixMonth: course.on_sale_six_month,
+      onSaleYearly: course.on_sale_one_year,
     })
 
-    // Log the monthly data
-    console.log("Monthly data:", getMonthlyRevenueData())
-  }, [paidCourses])
+    paidCourses.forEach((paidCourse, index) => {
+      const subscriptionType = paidCourse.subscriptionRequest?.subscription_type
+      const expectedPrice = getSubscriptionPrice(subscriptionType)
+      const actualPrice = Number(paidCourse.course_price || 0)
+      console.log(`Paid Course ${index + 1}:`, {
+        id: paidCourse.id,
+        subscription_type: subscriptionType,
+        expected_price: expectedPrice,
+        actual_course_price: actualPrice,
+        subscription_total_price: paidCourse.subscriptionRequest?.total_price,
+        created_at: paidCourse.created_at,
+      })
+    })
+  }, [paidCourses, course])
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -276,6 +320,7 @@ export default function CourseStatisticsDialog({ course, paidCourses }: CourseSt
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">{totalRevenue.toLocaleString()} Birr</div>
+                  <p className="text-xs text-muted-foreground">Based on actual course prices paid</p>
                 </CardContent>
               </Card>
 
@@ -311,7 +356,7 @@ export default function CourseStatisticsDialog({ course, paidCourses }: CourseSt
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-lg">Monthly Revenue (2025)</CardTitle>
-                    <CardDescription>Revenue generated over time</CardDescription>
+                    <CardDescription>Revenue based on actual course prices paid</CardDescription>
                   </CardHeader>
                   <CardContent className="h-80">
                     <ResponsiveContainer width="100%" height="100%">
@@ -380,7 +425,7 @@ export default function CourseStatisticsDialog({ course, paidCourses }: CourseSt
                     <TableRow>
                       <TableHead>User</TableHead>
                       <TableHead>Subscription Type</TableHead>
-                      <TableHead>Price</TableHead>
+                      <TableHead>Course Price</TableHead>
                       <TableHead>Start Date</TableHead>
                       <TableHead>End Date</TableHead>
                       <TableHead>Status</TableHead>
@@ -391,6 +436,8 @@ export default function CourseStatisticsDialog({ course, paidCourses }: CourseSt
                       const subscription = paidCourse.subscriptionRequest?.subscriptions?.[0]
                       const user = paidCourse.user
                       const subscriptionType = paidCourse.subscriptionRequest?.subscription_type
+                      const actualPrice = Number(paidCourse.course_price || 0)
+                      const expectedPrice = getSubscriptionPrice(subscriptionType)
 
                       return (
                         <TableRow key={paidCourse.id}>
@@ -409,7 +456,17 @@ export default function CourseStatisticsDialog({ course, paidCourses }: CourseSt
                             {subscriptionType ? formatSubscriptionType(subscriptionType) : "Unknown"}
                           </TableCell>
                           <TableCell>
-                            {Number(paidCourse.subscriptionRequest?.total_price || 0).toLocaleString()} Birr
+                            <div className="space-y-1">
+                              <div className="font-medium">{actualPrice.toLocaleString()} Birr</div>
+                              {expectedPrice !== actualPrice && (
+                                <div className="text-xs text-muted-foreground">
+                                  Expected: {expectedPrice.toLocaleString()} Birr
+                                </div>
+                              )}
+                              <div className="text-xs text-muted-foreground">
+                                Total Paid: {Number(paidCourse.subscriptionRequest?.total_price || 0).toLocaleString()} Birr
+                              </div>
+                            </div>
                             {isOnSale(subscriptionType) && (
                               <Badge
                                 variant="outline"

@@ -90,8 +90,8 @@ export default function CourseStatisticsDialog({ course, paidCourses }: CourseSt
   console.log("=== TOTAL REVENUE ===")
   console.log(`Final total revenue: ${totalRevenue} Birr`)
 
-  const activeSubscriptions = paidCourses.filter((paidCourse) => paidCourse.expired === 0).length
-  const expiredSubscriptions = paidCourses.filter((paidCourse) => paidCourse.expired === 1).length
+  const activeSubscriptions = paidCourses.filter((paidCourse) => paidCourse.expired == 0).length
+  const expiredSubscriptions = paidCourses.filter((paidCourse) => paidCourse.expired == 1).length
 
   console.log('activeSubscriptions:', activeSubscriptions)
   // Only include subscription types that have actual enrollments

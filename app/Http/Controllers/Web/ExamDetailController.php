@@ -56,7 +56,7 @@ class ExamDetailController extends Controller
         
             return [
                 'id' => $paidExam->id,
-                'expired' => $paidExam->expired,
+                'expired' => (int)$paidExam->expired,
                 'user' => $paidExam->user,
                 'exam_price' => $paidExam->exam_price,
                 'subscriptionRequest' => $subscriptionRequest,

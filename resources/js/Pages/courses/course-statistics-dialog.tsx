@@ -93,6 +93,7 @@ export default function CourseStatisticsDialog({ course, paidCourses }: CourseSt
   const activeSubscriptions = paidCourses.filter((paidCourse) => paidCourse.expired === 0).length
   const expiredSubscriptions = paidCourses.filter((paidCourse) => paidCourse.expired === 1).length
 
+  console.log('activeSubscriptions:', activeSubscriptions)
   // Only include subscription types that have actual enrollments
   const getSubscriptionTypeData = () => {
     const typeCounts: Record<string, number> = {}

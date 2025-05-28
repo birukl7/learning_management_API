@@ -151,7 +151,7 @@ class CourseController extends Controller
             return [
                 'id' => $paidCourse->id,
                 'course_price' => $paidCourse->course_price,
-                'expired' => $paidCourse->expired,
+                'expired' =>(int) $paidCourse->expired,
                 'user' => $paidCourse->user,
                 'subscriptionRequest' => $subscriptionRequest,
                 'created_at' => $paidCourse->created_at

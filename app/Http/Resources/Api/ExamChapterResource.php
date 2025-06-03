@@ -17,6 +17,7 @@ class ExamChapterResource extends JsonResource
         return [
             'id' => $this->id,
             "title" => $this->title,
+            'number_of_questions' => (int)$this->examQuestions->count(),
         ];
     }
 }

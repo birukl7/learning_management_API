@@ -19,7 +19,6 @@ class ExamDetailController extends Controller
     public function show(Request $request, string $id)
     {
         $query = ExamQuestion::query();
-
         $exam = Exam::with([
             'examType',
             'examCourse',

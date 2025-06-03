@@ -31,6 +31,8 @@ class SubscriptionController extends Controller
 
         $query = SubscriptionRequest::with(['user', 'courses','exams.examType','exams.examCourse','exams.examYear']);
 
+        // dd($query->get());
+
         if ($request->filled('status')){
             $query->where('status', $request->input('status'));
         }
